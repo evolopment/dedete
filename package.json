@@ -1,15 +1,10 @@
 {
   "name": "@evolopment/dedete",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Data Driven Tests for Mocha",
-  "keywords": [
-    "ddt",
-    "Data",
-    "Driven",
-    "Tests",
-    "Mocha"
-  ],
+  "keywords": [ "ddt", "Data", "Driven", "Tests", "Mocha" ],
   "author": "Jaime Blázquez <code@evolopment.com> (http://evolopment.com/)",
+  "homepage": "https://github.com/evolopment/dedete",
   "repository": {
     "type": "git",
     "url": "https://github.com/evolopment/dedete.git"
@@ -21,17 +16,20 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha test/test-suite.js",
-    "coverage": "istanbul cover _mocha -- -R spec test/test-suite.js",
+    "coverage": "nyc mocha test/test-suite.js",
     "example": "mocha example/example-suite.js"
   },
   "dependencies": {
-    "chai": "^3.4.1",
-    "lodash": "^3.10.1",
-    "q": "^1.4.1"
+    "chai": "^3.4.1"
   },
   "devDependencies": {
     "chai-as-promised": "^5.1.0",
+    "mocha": "^9.0.3",
+    "nyc": "^15.1.0",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0"
+  },
+  "engines": {
+    "node": ">6.0.0"
   }
 }

@@ -1,29 +1,38 @@
 /*
- * Copyright (c) 2015, Jaime Blazquez del Hierro
+ * Copyright (c) 2021, Jaime Blazquez del Hierro
  * Licensed under BSD 2-Clause license
  * See LICENSE.md file for details
  */
 
-var chai = require('chai');
-var chaiAsPromise = require('chai-as-promised');
-var sinonChai = require('sinon-chai');
-var sinon = require('sinon');
-var Q = require('q');
+const chai = require('chai');
+const chaiAsPromise = require('chai-as-promised');
+const sinonChai = require('sinon-chai');
+const sinon = require('sinon');
 
 chai.use(chaiAsPromise);
 chai.use(sinonChai);
-var expect = chai.expect;
+const expect = chai.expect;
 
-var ddt = require('../lib/index.js');
+const ddt = require('../lib/index.js');
+
+function delay(ms) {
+    return new Promise(function(resolve, reject) {
+            setTimeout(resolve, ms);
+    });
+}
+
+function isPromiseAlike(maybePromise) {
+    return typeof maybePromise.then == 'function';
+}
 
 describe('Case generation', function() {
 
-    var cg = require('../lib/case-generators');
+    const cg = require('../lib/case-generators');
 
     describe('Direct case iteration', function () {
 
         it('Iterates though enumerated cases, in order', function() {
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             cg.direct(
                 {inputs: ['a'], outputs: ['b']},
@@ -75,7 +84,7 @@ describe('Case generation', function() {
         });
 
         it('Throws a message if output not present, indicating which case (1 missing)', function() {
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             expect(function() {
                 cg.direct(
@@ -87,7 +96,7 @@ describe('Case generation', function() {
         });
 
         it('Throws a message if output not present, indicating which case (>1 missing, same case)', function() {
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             expect(function() {
                 cg.direct(
@@ -99,7 +108,7 @@ describe('Case generation', function() {
         });
 
         it('1 input, 1 output', function () {
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             cg.direct(
                 {inputs: ['a'], outputs: ['b']},
@@ -112,7 +121,7 @@ describe('Case generation', function() {
         });
 
         it('1 input, 1 output (ignores non-declared inputs)', function () {
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             cg.direct(
                 {inputs: ['a'], outputs: ['b']},
@@ -126,7 +135,7 @@ describe('Case generation', function() {
 
         it('>1 input, 1 output (it\'s described in declaration order)', function () {
 
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             cg.direct(
                 {inputs: ['a', 'b'], outputs: ['c']},
@@ -141,7 +150,7 @@ describe('Case generation', function() {
 
         it('1 output (implicit EQL)', function() {
 
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             cg.direct(
                 { inputs: ['a'], outputs: ['b'] },
@@ -157,7 +166,7 @@ describe('Case generation', function() {
 
         it('2 outputs (implicit EQL)', function() {
 
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
             cg.direct(
                 { inputs: ['a'], outputs: ['b', 'c'] },
@@ -175,10 +184,10 @@ describe('Case generation', function() {
 
         it('Explicit matchers', function() {
 
-            var cbSpy = sinon.spy();
+            const cbSpy = sinon.spy();
 
-            var eql = ddt.eql;
-            var notEql = ddt.notEql;
+            const eql = ddt.eql;
+            const notEql = ddt.notEql;
 
             cg.direct(
                 { inputs: ['a'], outputs: ['b'] },
@@ -194,8 +203,8 @@ describe('Case generation', function() {
 
         it('Skip (negative)', function() {
 
-            var doSpy = sinon.spy();
-            var skipSpy = sinon.spy();
+            const doSpy = sinon.spy();
+            const skipSpy = sinon.spy();
 
             cg.direct(
                 { inputs: ['a'], outputs: ['b'] },
@@ -211,8 +220,8 @@ describe('Case generation', function() {
 
         it('Skip (positive - no reason)', function() {
 
-            var doSpy = sinon.spy();
-            var skipSpy = sinon.spy();
+            const doSpy = sinon.spy();
+            const skipSpy = sinon.spy();
 
             cg.direct(
                 { inputs: ['a'], outputs: ['b'] },
@@ -229,8 +238,8 @@ describe('Case generation', function() {
 
         it('Skip (positive - with reason)', function() {
 
-            var doSpy = sinon.spy();
-            var skipSpy = sinon.spy();
+            const doSpy = sinon.spy();
+            const skipSpy = sinon.spy();
 
             cg.direct(
                 { inputs: ['a'], outputs: ['b'] },
@@ -252,7 +261,7 @@ describe('Matchers', function() {
 
     function testDescribe(matcher, output, expected) {
         it(matcher.name + ' [describe]', function() {
-            var parsedOutput = matcher.parse(output);
+            const parsedOutput = matcher.parse(output);
             expect(matcher.describe('a', parsedOutput)).to.eql(expected)
         });
     }
@@ -260,14 +269,14 @@ describe('Matchers', function() {
     function testParseEval(matcher, input, ok, nok) {
         it(matcher.name + ' [eval ok]', function() {
             expect(function () {
-                var expected = matcher.parse(ok);
+                const expected = matcher.parse(ok);
                 matcher.eval(expected, input, '[a]');
             }).not.to.throw();
         });
 
         it(matcher.name + ' [eval ko]', function() {
             expect(function() {
-                var expected = matcher.parse(nok);
+                const expected = matcher.parse(nok);
                 matcher.eval(expected, input, '[a]');
             }).to.throw(/\[a\]/);
         });
@@ -283,7 +292,7 @@ describe('Matchers', function() {
 
 describe('Output matchment', function() {
 
-    var matcher = require('../lib/output-matcher').matcher;
+    const matcher = require('../lib/output-matcher').matcher;
 
     it('1 ok', function() {
         expect(function() {
@@ -313,24 +322,24 @@ describe('Output matchment', function() {
 
 describe('Driver', function() {
 
-    var drive = require('../lib/driver').drive;
+    const drive = require('../lib/driver').drive;
 
-    var metadata = {
+    const metadata = {
         inputs: ['a', 'b'],
         outputs: ['c', 'd']
     };
 
-    var dataOK = [
+    const dataOK = [
         {a: 1, b: 2, c: -1, d: 2},
         {a: 2, b: 2, c:  0, d: 4}
     ];
 
-    var dataKO = [
+    const dataKO = [
         {a: 1, b: 2, c: -1, d: 2},
         {a: 2, b: 2, c:  0, d: 6}
     ];
 
-    var dataOKWithSkip = [
+    const dataOKWithSkip = [
         {a: 1, b: 2, c: -1, d: 2},
         {a: 3, b: 2, c:  1, d: 6, _skip: true},
         {a: 3, b: 3, c:  0, d: 9, _skip: "n/a"},
@@ -355,66 +364,66 @@ describe('Driver', function() {
     describe('Callbacks', function() {
 
         it('Action callback call count (no skip)', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOK, actionSpy, opts);
             expect(actionSpy.callCount).to.eql(2);
         });
 
         it('Action callback call count (skip)', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOKWithSkip, actionSpy, opts);
             expect(actionSpy.callCount).to.eql(2);
         });
 
         it('Case callback call count (no skip)', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.callCount).to.eql(2);
         });
 
         it('Case callback call count (skip)', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOKWithSkip, actionSpy, opts);
             expect(opts.doCase.callCount).to.eql(2);
         });
 
         it('Skip callback call count (no skip)', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.skipCase.callCount).to.eql(0);
         });
 
         it('Skip callback call count (skip)', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOKWithSkip, actionSpy, opts);
             expect(opts.skipCase.callCount).to.eql(2);
         });
 
         it('Case callback description', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.firstCall.args[0]).to.eql('a=1; b=2 => c=-1; d=2');
             expect(opts.doCase.secondCall.args[0]).to.eql('a=2; b=2 => c=0; d=4');
         });
 
         it('Skip callback description', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOKWithSkip, actionSpy, opts);
             expect(opts.skipCase.firstCall.args[0]).to.eql('a=3; b=2 => c=1; d=6');
             expect(opts.skipCase.secondCall.args[0]).to.eql('[n/a] a=3; b=3 => c=0; d=9');
         });
 
         it('Case callback gets passed a function', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.firstCall.args[1]).to.be.a('function');
             expect(opts.doCase.secondCall.args[1]).to.be.a('function');
@@ -425,24 +434,24 @@ describe('Driver', function() {
     describe('Action doesn\'t return anything (checks itself)', function() {
 
         it('The case function doesn\'t return anything', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.firstCall.returnValue).not.exists;
             expect(opts.doCase.secondCall.returnValue).not.exists;
         });
 
         it('With succeeded assertion, test goes OK', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy();
+            const opts = spyOpts();
+            const actionSpy = sinon.spy();
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.firstCall.returnValue).not.to.be.instanceOf(Error);
             expect(opts.doCase.secondCall.returnValue).not.to.be.instanceOf(Error);
         });
 
         it('With failed assertion, test goes KO', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy(function() {
+            const opts = spyOpts();
+            const actionSpy = sinon.spy(function() {
                 expect(true).to.be.false;
             });
             drive(metadata, dataOK, actionSpy, opts);
@@ -462,16 +471,16 @@ describe('Driver', function() {
         }
 
         it('The case function doesn\'t return anything', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy(testedFn);
+            const opts = spyOpts();
+            const actionSpy = sinon.spy(testedFn);
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.firstCall.returnValue).not.exists;
             expect(opts.doCase.secondCall.returnValue).not.exists;
         });
 
         it('With right data, test goes OK', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy(testedFn);
+            const opts = spyOpts();
+            const actionSpy = sinon.spy(testedFn);
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.firstCall.returnValue).not.to.be.instanceOf(Error);
             expect(opts.doCase.secondCall.returnValue).not.to.be.instanceOf(Error);
@@ -479,9 +488,9 @@ describe('Driver', function() {
 
         it('With wrong data, test goes KO', function() {
             // it doesn't use the data set, but we instruct the matcher to fail
-            var opts = spyOpts();
+            const opts = spyOpts();
             opts.matcher.onSecondCall().throws();
-            var actionSpy = sinon.spy(testedFn);
+            const actionSpy = sinon.spy(testedFn);
             drive(metadata, dataOK, actionSpy, opts);
             expect(opts.doCase.firstCall.returnValue).not.to.be.instanceOf(Error);
             expect(opts.doCase.secondCall.returnValue).to.be.instanceOf(Error);
@@ -494,30 +503,30 @@ describe('Driver', function() {
         function testedFn(ins) {
             return {
                 c: ins.a - ins.b,
-                d: Q.delay(1).then(function() { return ins.a + ins.b; })
+                d: delay(1).then(function() { return ins.a + ins.b; })
             }
         }
 
         it('The case function returns a Promise', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy(testedFn);
+            const opts = spyOpts();
+            const actionSpy = sinon.spy(testedFn);
             drive(metadata, dataOK, actionSpy, opts);
-            expect(Q.isPromiseAlike(opts.doCase.firstCall.returnValue)).to.be.true;
-            expect(Q.isPromiseAlike(opts.doCase.secondCall.returnValue)).to.be.true;
+            expect(isPromiseAlike(opts.doCase.firstCall.returnValue)).to.be.true;
+            expect(isPromiseAlike(opts.doCase.secondCall.returnValue)).to.be.true;
         });
 
         it('With right data, test goes OK', function() {
-            var opts = spyOpts();
-            var actionSpy = sinon.spy(testedFn);
+            const opts = spyOpts();
+            const actionSpy = sinon.spy(testedFn);
             drive(metadata, dataOK, actionSpy, opts);
             return expect(opts.doCase.firstCall.returnValue).to.be.fulfilled;
         });
 
         it('With wrong data, test goes KO', function() {
             // it doesn't use the data set, but we instruct the matcher to fail
-            var opts = spyOpts();
+            const opts = spyOpts();
             opts.matcher.onSecondCall().throws();
-            var actionSpy = sinon.spy(testedFn);
+            const actionSpy = sinon.spy(testedFn);
             drive(metadata, dataOK, actionSpy, opts);
             return expect(opts.doCase.secondCall.returnValue).to.be.rejected;
         });
